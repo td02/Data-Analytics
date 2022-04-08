@@ -1,0 +1,99 @@
+---
+title: "515-Assignment 2"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Import dataset 
+
+```{r}
+install.packages("margins")
+data <- read.csv("rocketfuel.csv")
+summary(data)
+```
+
+## Question 1
+
+
+```{r}
+#a 
+test <- subset(data, data$test==1) 
+control <-subset(data, data$test==0)
+print(sprintf('Number of users in test group: %f', nrow(test)))
+print(sprintf('Number of users in control group: %f',nrow(control)))
+#b 
+test_conversion<-sum(test$converted==1)/nrow(test)
+control_conversion <- sum(control$converted==1)/nrow(control)
+```
+#Question 2
+```{r}
+#a 
+test_impressions <- sum(test$tot_impr)/nrow(test)
+control_impressions <-sum(control$tot_impr)/nrow(control)
+t.test(control$tot_impr,test$tot_impr,var.equal = FALSE)
+#b) p_value >0.05 is not statistically significant and indicates a strong evidence for the nul (difference is = 0) 
+```
+#Question 3
+
+```{r}
+#a
+t.test(control$converted,test$converted,var.equal = FALSE)
+#Alternative Hypothesis is true since p value is smaller than 0.05. The conversion rate of the test group is higher than the control. The difference is 
+test_conversion-control_conversion 
+#b 
+model <- glm(formula=converted~test,data=data, family='binomial')
+summary(model)
+test_prob <- predict(model, newdata = data.frame(test=c(1)), type="response")
+control_prob <- predict(model, newdata = data.frame(test=c(0)), type="response")
+test_prob-control_prob
+#yes they are the same 
+```
+
+#Question 4 
+
+```{r}
+#incremental_model <- glm(formula = converted ~ tot_impr + tot_impr:test, family="binomial",data=data)
+#library(margins)
+#margins(incremental_model,at=list(test=0:1),data=data[data$tot_impr<100,])
+lift <- mean(test$converted)-mean(control$converted)
+Revenue <- 40*lift*nrow(test)
+Cost <- sum(test$tot_impr)*9/1000
+ROI <- (Revenue - Cost)/Cost
+op_cost<- nrow(control)*lift*40
+```
+
+#Question 5 
+```{r}
+#a
+t.test(control$mode_impr_day,test$mode_impr_day,var.equal = FALSE)
+# difference = 0.075925
+4.028570-3.952644
+#b 
+model5<-glm(formula=mode_impr_day~test+test:mode_impr_day,data=data)
+summary(model5)
+test_prob <- predict(model5, newdata = data.frame(test=c(1)), type="response")
+control_prob <- predict(model5, newdata = data.frame(test=c(0)), type="response")
+test_prob-control_prob
+#c
+```
+
+#Question 6
+
+```{r}
+#a
+t.test(control$mode_impr_hour,test$mode_impr_hour,var.equal = FALSE)
+# difference = 0.17098
+14.47590-14.30492
+#b 
+model6<-glm(formula=mode_impr_hour~test,data=data)
+summary(model6)
+test_prob <- predict(model6, newdata = data.frame(test=c(1)), type="response")
+control_prob <- predict(model6, newdata = data.frame(test=c(0)), type="response")
+test_prob-control_prob
+#b 
+```
